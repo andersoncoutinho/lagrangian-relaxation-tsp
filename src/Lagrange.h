@@ -1,5 +1,7 @@
 #include "Kruskal.h"
 
+#define EPSILON 0.000001
+
 class Lagrange {
     public:
         Lagrange(double **ptrMatrix, int dimension, double upperbound);
@@ -15,6 +17,8 @@ class Lagrange {
         void copyMatrix(double **ptrMatrix);
         vector<int> calculateNodeDegrees();
         void calculateSubgradients(vector<int> nodesDegrees);
+        bool isFeasible();
         void calculateU();
+        void modifyMatrix();
 
 };

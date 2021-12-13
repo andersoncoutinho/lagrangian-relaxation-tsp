@@ -3,32 +3,43 @@
 #include "data.h"
 
 Lagrange::Lagrange(double **ptrMatrix, int dimension, double upperbound) {
-    /*
+    
     this->subgradients = vector<int>(dimension);
     this->u = vector<double>(dimension);
     this->dimension = dimension;
     this->upperbound = upperbound;
     
     this->copyMatrix(ptrMatrix);
-    */
+    
+
+   /*
    this->subgradients = vector<int>(5);
     this->u = vector<double>(5);
     this->dimension = 5;
     this->upperbound = upperbound;
     this->distanceMatrix = vvi(5);
+
     distanceMatrix[0] = {INFINITE, 30, 26, 50, 40};
     distanceMatrix[1] = {30, INFINITE, 24, 40, 50};
     distanceMatrix[2] = {26, 24, INFINITE, 24, 26};
     distanceMatrix[3] = {50, 40, 24, INFINITE, 30};
     distanceMatrix[4] = {40, 50, 26, 30, INFINITE};
     modifiedMatrix = distanceMatrix;
+    */
 
 }
 
 void Lagrange::solve() {
-
-    this->calculateSubgradients(this->calculateNodeDegrees());
-    this->calculateU();
+    
+    while(true) {
+        this->calculateSubgradients(this->calculateNodeDegrees());
+        if(this->isFeasible() || this->cost == upperbound) {
+            break;
+        }
+        this->calculateU();
+        this->modifyMatrix();
+    }
+    
 }
 
 void Lagrange::copyMatrix(double **ptrMatrix) {
@@ -47,19 +58,19 @@ void Lagrange::copyMatrix(double **ptrMatrix) {
 
 vector<int> Lagrange::calculateNodeDegrees() {
     
-    Kruskal kruskal(this->modifiedMatrix);
-    cost = kruskal.MST(this->dimension-1);
+    Kruskal kruskal(modifiedMatrix);
+    cost = kruskal.MST(dimension-1);
     vii edges = kruskal.getEdges();
-
+    
     ii bestCost, bestNodes;
     bestCost.first = bestCost.second = INFINITE;
-    for(int j = 0; j < dimension; j++) {
+    for(int j = 1; j < dimension; j++) {
         if(modifiedMatrix[0][j] < bestCost.first) {
             bestCost.second = bestCost.first;
             bestNodes.second = bestNodes.first;
             bestCost.first = modifiedMatrix[0][j];
             bestNodes.first = j;
-        } else if (modifiedMatrix[0][j] < bestNodes.second) {
+        } else if (modifiedMatrix[0][j] < bestCost.second) {
             bestCost.second = modifiedMatrix[0][j]; 
             bestNodes.second = j;
         }
@@ -68,6 +79,7 @@ vector<int> Lagrange::calculateNodeDegrees() {
     edges.push_back({0, bestNodes.second});
     cost += (modifiedMatrix[0][bestNodes.first] + modifiedMatrix[0][bestNodes.second]);
     
+    printf("Custo: %.3lf\n", cost);
     vector<int> nodeDegrees(dimension);
     for(int i = 0; i < edges.size(); i++) {
         nodeDegrees[edges[i].first]++;
@@ -79,11 +91,13 @@ vector<int> Lagrange::calculateNodeDegrees() {
 }
 
 void Lagrange::calculateSubgradients(vector<int> nodesDegrees) {
-
+    printf("Subgradientes = (");
     for(int i = 0; i < nodesDegrees.size(); i++) {
         subgradients[i] = 2 - nodesDegrees[i];
-        printf("Subgradiente [%d]: %d\n", i, subgradients[i]);
+        printf("%d ", subgradients[i]);
     }
+    printf(")\n");
+    
 }
 
 void Lagrange::calculateU() {
@@ -94,9 +108,33 @@ void Lagrange::calculateU() {
     }
     
     double step = ((this->upperbound - this->cost) / powSubgrad);
-    printf("PAsso: %.2lf\n", step);
+    printf("Passo: %.2lf\n", step);
+    printf("Multiplicadores = (");
     for(int i = 0; i < u.size(); i++) {
         u[i] += (step * subgradients[i]);
-        printf("Multiplicador de lagrangre [%d]: %.3lf\n", i, u[i]);
+        printf("%.3lf ", u[i]);
     }
+    printf(")\n");
+    
+}
+
+void Lagrange::modifyMatrix() {
+    
+    for(int i = 0; i < this->dimension; i++) {
+        for(int j = 0; j < this->dimension; j++) {
+            if(i!=j) {
+                this->modifiedMatrix[i][j] = this->distanceMatrix[i][j] - (u[i] + u[j]);
+            }
+        }
+    }
+    
+}
+
+bool Lagrange::isFeasible() {
+    for(int i = 0; i < subgradients.size(); i++) {
+        if(subgradients[i] < (0 - EPSILON) || subgradients[i] > (0 + EPSILON)) {
+            return false;
+        }
+    }
+    return true;
 }
