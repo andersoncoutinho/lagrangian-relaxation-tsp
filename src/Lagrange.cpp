@@ -2,19 +2,33 @@
 #include "Lagrange.h"
 #include "data.h"
 
-Lagrange::Lagrange(double **ptrMatrix, int dimension) {
-
+Lagrange::Lagrange(double **ptrMatrix, int dimension, double upperbound) {
+    /*
     this->subgradients = vector<int>(dimension);
     this->u = vector<double>(dimension);
     this->dimension = dimension;
+    this->upperbound = upperbound;
     
     this->copyMatrix(ptrMatrix);
-    
+    */
+   this->subgradients = vector<int>(5);
+    this->u = vector<double>(5);
+    this->dimension = 5;
+    this->upperbound = upperbound;
+    this->distanceMatrix = vvi(5);
+    distanceMatrix[0] = {INFINITE, 30, 26, 50, 40};
+    distanceMatrix[1] = {30, INFINITE, 24, 40, 50};
+    distanceMatrix[2] = {26, 24, INFINITE, 24, 26};
+    distanceMatrix[3] = {50, 40, 24, INFINITE, 30};
+    distanceMatrix[4] = {40, 50, 26, 30, INFINITE};
+    modifiedMatrix = distanceMatrix;
 
 }
 
 void Lagrange::solve() {
+
     this->calculateSubgradients(this->calculateNodeDegrees());
+    this->calculateU();
 }
 
 void Lagrange::copyMatrix(double **ptrMatrix) {
@@ -34,10 +48,9 @@ void Lagrange::copyMatrix(double **ptrMatrix) {
 vector<int> Lagrange::calculateNodeDegrees() {
     
     Kruskal kruskal(this->modifiedMatrix);
-    double cost = kruskal.MST(this->dimension-1);
+    cost = kruskal.MST(this->dimension-1);
     vii edges = kruskal.getEdges();
 
-    printf("Custo: %.0lf\n", cost);
     ii bestCost, bestNodes;
     bestCost.first = bestCost.second = INFINITE;
     for(int j = 0; j < dimension; j++) {
@@ -54,16 +67,11 @@ vector<int> Lagrange::calculateNodeDegrees() {
     edges.push_back({0, bestNodes.first});
     edges.push_back({0, bestNodes.second});
     cost += (modifiedMatrix[0][bestNodes.first] + modifiedMatrix[0][bestNodes.second]);
-    printf("Custo: %.0lf\n", cost);
     
     vector<int> nodeDegrees(dimension);
     for(int i = 0; i < edges.size(); i++) {
         nodeDegrees[edges[i].first]++;
         nodeDegrees[edges[i].second]++;
-    }
-
-    for(int i = 0; i < dimension; i++) {
-        printf("Grau do nó %d: %d\n", i, nodeDegrees[i]);
     }
 
     return nodeDegrees;
@@ -74,7 +82,21 @@ void Lagrange::calculateSubgradients(vector<int> nodesDegrees) {
 
     for(int i = 0; i < nodesDegrees.size(); i++) {
         subgradients[i] = 2 - nodesDegrees[i];
-        printf("Subgradiente do nó %d: %d\n", i, subgradients[i]);
+        printf("Subgradiente [%d]: %d\n", i, subgradients[i]);
+    }
+}
+
+void Lagrange::calculateU() {
+
+    double powSubgrad = 0;
+    for(int i = 0; i < this->subgradients.size(); i++) {
+        powSubgrad += (subgradients[i]*subgradients[i]);
     }
     
+    double step = ((this->upperbound - this->cost) / powSubgrad);
+    printf("PAsso: %.2lf\n", step);
+    for(int i = 0; i < u.size(); i++) {
+        u[i] += (step * subgradients[i]);
+        printf("Multiplicador de lagrangre [%d]: %.3lf\n", i, u[i]);
+    }
 }

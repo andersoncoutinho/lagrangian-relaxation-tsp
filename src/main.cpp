@@ -8,9 +8,14 @@ int main(int argc, char *argv[]) {
     data.readData();
 
     double **matrix = data.getMatrixCost();
-    int dimension = data.getDimension();;
+    int dimension = data.getDimension();
 
-    Lagrange lagrange(matrix, dimension);
+    double upperbound;
+    printf("Informe o limitante primal: ");
+    int n = scanf("%lf", &upperbound);
+    getchar();
+
+    Lagrange lagrange(matrix, dimension, upperbound);
     lagrange.solve();
     
 
