@@ -11,7 +11,7 @@ class Lagrange {
         std::vector<double> u;
         int dimension;
         void copyMatrix(double **ptrMatrix);
-        void calculateNodeDegrees();
-        void calculateSubgradients();
+        vector<int> calculateNodeDegrees();
+        void calculateSubgradients(vector<int> nodesDegrees);
 
 };
