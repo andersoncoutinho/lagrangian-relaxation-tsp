@@ -18,7 +18,8 @@ int main(int argc, char *argv[]) {
     Lagrange lagrange(matrix, dimension, upperbound);
     lagrange.solve();
     
+    printf("Custo: %.2lf\n", lagrange.getCost());
+    printf("Upperbound: %.2lf\n", lagrange.getUpperbound());
 
-
-
+    return 0;
 }
