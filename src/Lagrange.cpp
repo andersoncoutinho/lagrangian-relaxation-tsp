@@ -2,7 +2,7 @@
 #include "Lagrange.h"
 #include "data.h"
 
-Lagrange::Lagrange(vvi *matrix, int dimension, double upperbound, vector<double> u) {
+Lagrange::Lagrange(vvi *matrix, int dimension, double upperbound, vector<double> u, ii forb) {
 
     this->subgradients = vector<int>(dimension);
     this->u = u;
@@ -15,18 +15,13 @@ Lagrange::Lagrange(vvi *matrix, int dimension, double upperbound, vector<double>
     this->nodesDegree = vector<int>(dimension);
    
     this->distanceMatrix = *matrix;
-    for(int i = 0; i < this->forbiddenEdges.size(); i++) {
-        this->distanceMatrix[forbiddenEdges[i].first][forbiddenEdges[i].second] = 
-        this->distanceMatrix[forbiddenEdges[i].second][forbiddenEdges[i].first] = INFINITE;
-    }
-
+    distanceMatrix[forb.first][forb.second] = distanceMatrix[forb.second][forb.first] = INFINITE;
     this->modifiedMatrix = this->distanceMatrix;
 }
 
 void Lagrange::solve() {
     
     while(true) {
-
         this->calculateNodesDegree();
         this->calculateSubgradients();
 
@@ -36,7 +31,7 @@ void Lagrange::solve() {
             break;
         }
 
-        if(this->cost >= this->L) {
+        if(this->cost >= this->L + CORRECTION_FACTOR) {
             this->L = this->cost;
             iterations = -1;
         } else if(iterations == QTD_ITERATIONS) {
@@ -167,4 +162,20 @@ void Lagrange::generateForbiddenEdges() {
             this->forbiddenEdges.push_back(edges[i]);
         }
     }
+}
+
+bool Lagrange::cut() {
+    return this->feasible;
+}
+
+vii Lagrange::getForbiddenEdges() {
+    return this->forbiddenEdges;
+}
+
+vector<double> Lagrange::getU() {
+    return this->u;
+}
+
+vvi* Lagrange::getMatrix() {
+    return &this->distanceMatrix;
 }

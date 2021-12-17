@@ -6,10 +6,14 @@
 
 class Lagrange {
     public:
-        Lagrange(vvi *matrix, int dimension, double upperbound, vector<double> u);
+        Lagrange(vvi *matrix, int dimension, double upperbound, vector<double> u, ii forb);
         void solve();
         double getCost();
         double getUpperbound();
+        vii getForbiddenEdges();
+        vector<double> getU();
+        bool cut();
+        vvi* getMatrix();
     private:
         vvi distanceMatrix;
         vvi modifiedMatrix;
