@@ -2,10 +2,10 @@
 #include "Lagrange.h"
 #include "data.h"
 
-Lagrange::Lagrange(vvi *matrix, int dimension, double upperbound) {
+Lagrange::Lagrange(vvi *matrix, int dimension, double upperbound, vector<double> u) {
 
     this->subgradients = vector<int>(dimension);
-    this->u = vector<double>(dimension);
+    this->u = u;
     this->dimension = dimension;
     this->upperbound = upperbound;
     this->iterations = 0;
