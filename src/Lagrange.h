@@ -16,6 +16,7 @@ class Lagrange {
         std::vector<int> subgradients;
         std::vector<double> u;
         std::vector<ii> forbiddenEdges;
+        std::vector<int> nodesDegree;
         double cost;
         double upperbound;
         int dimension;
@@ -24,10 +25,12 @@ class Lagrange {
         double EPSILON;
         bool feasible;
         void copyMatrix(double **ptrMatrix);
-        vector<int> calculateNodeDegrees();
-        void calculateSubgradients(vector<int> nodesDegrees);
+        void calculateNodesDegree();
+        void calculateSubgradients();
         bool isFeasible();
         void calculateU();
         void modifyMatrix();
+        void generateForbiddenEdges();
+        vii edges;
 
 };

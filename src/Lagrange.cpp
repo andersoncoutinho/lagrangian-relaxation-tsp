@@ -12,48 +12,39 @@ Lagrange::Lagrange(double **ptrMatrix, int dimension, double upperbound) {
     this->L = 0;
     this->EPSILON = 2;
     this->feasible = false;
+    this->nodesDegree = vector<int>(dimension);
    
     this->copyMatrix(ptrMatrix);
-    
-    /* 
-   this->subgradients = vector<int>(5);
-    this->u = vector<double>(5);
-    this->dimension = 5;
-    this->upperbound = upperbound;
-    this->distanceMatrix = vvi(5);
-
-    distanceMatrix[0] = {INFINITE, 30, 26, 50, 40};
-    distanceMatrix[1] = {30, INFINITE, 24, 40, 50};
-    distanceMatrix[2] = {26, 24, INFINITE, 24, 26};
-    distanceMatrix[3] = {50, 40, 24, INFINITE, 30};
-    distanceMatrix[4] = {40, 50, 26, 30, INFINITE};
-    modifiedMatrix = distanceMatrix;
-*/
-    
-
 }
 
 void Lagrange::solve() {
     
     while(true) {
-        this->calculateSubgradients(this->calculateNodeDegrees());
+
+        this->calculateNodesDegree();
+        this->calculateSubgradients();
+
         if(this->isFeasible()) {
+            this->feasible = true;
             this->upperbound = this->cost;
             break;
-        } else if(this->cost > this->L) {
-            this->L = this->cost;
-            iterations = -1;
         }
 
-        if(iterations == QTD_ITERATIONS) {
+        if(this->cost >= this->L) {
+            this->L = this->cost;
+            iterations = -1;
+        } else if(iterations == QTD_ITERATIONS) {
             this->EPSILON /= 2;
             if(this->EPSILON < MIN_EPSILON) {
+                this->generateForbiddenEdges();
                 break;
             }
             iterations = -1;
         }
+        
         this->calculateU();
         this->modifyMatrix();
+
         iterations++;
     }
 }
@@ -72,11 +63,11 @@ void Lagrange::copyMatrix(double **ptrMatrix) {
     this->modifiedMatrix = this->distanceMatrix;
 }
 
-vector<int> Lagrange::calculateNodeDegrees() {
+void Lagrange::calculateNodesDegree() {
     
     Kruskal kruskal(modifiedMatrix);
     cost = kruskal.MST(dimension-1);
-    vii edges = kruskal.getEdges();
+    edges = kruskal.getEdges();
     
     ii bestCost, bestNodes;
     bestCost.first = bestCost.second = INFINITE;
@@ -94,22 +85,22 @@ vector<int> Lagrange::calculateNodeDegrees() {
     edges.push_back({0, bestNodes.first});
     edges.push_back({0, bestNodes.second});
     cost += (modifiedMatrix[0][bestNodes.first] + modifiedMatrix[0][bestNodes.second]);
-    
-    //printf("Custo: %.3lf\n", cost);
-    
-    vector<int> nodeDegrees(dimension);
+    double sum = 0;
+    for(int i = 0; i < u.size(); i++) {
+        sum += u[i];
+    } 
+    cost += (2 * sum);
+
+    fill(nodesDegree.begin(), nodesDegree.end(), 0);
     for(int i = 0; i < edges.size(); i++) {
-        nodeDegrees[edges[i].first]++;
-        nodeDegrees[edges[i].second]++;
+        nodesDegree[edges[i].first]++;
+        nodesDegree[edges[i].second]++;
     }
-
-    return nodeDegrees;
-
 }
 
-void Lagrange::calculateSubgradients(vector<int> nodesDegrees) {
-    for(int i = 0; i < nodesDegrees.size(); i++) {
-        subgradients[i] = 2 - nodesDegrees[i];
+void Lagrange::calculateSubgradients() {
+    for(int i = 0; i < nodesDegree.size(); i++) {
+        subgradients[i] = 2 - nodesDegree[i];
     }
 }
 
@@ -120,10 +111,10 @@ void Lagrange::calculateU() {
         powSubgrad += (subgradients[i]*subgradients[i]);
     }
     
-    double step = ((this->upperbound - this->cost) / powSubgrad);
+    double step = EPSILON * ((this->upperbound - this->cost) / powSubgrad);
 
     for(int i = 0; i < u.size(); i++) {
-        u[i] += EPSILON*(step * subgradients[i]);        
+        u[i] += (step * subgradients[i]);
     }
 }
 
@@ -140,11 +131,10 @@ void Lagrange::modifyMatrix() {
 
 bool Lagrange::isFeasible() {
     for(int i = 0; i < subgradients.size(); i++) {
-        if(subgradients[i] < (0 - CORRECTION_FACTOR) || subgradients[i] > (0 + CORRECTION_FACTOR)) {
+        if(subgradients[i] != 0) {
             return false;
         }
     }
-    this->feasible = true;
     return true;
 }
 
@@ -154,4 +144,21 @@ double Lagrange::getCost() {
 
 double Lagrange::getUpperbound() {
     return this->upperbound;
+}
+
+void Lagrange::generateForbiddenEdges() {
+    int index = -1;
+    int degree = 0;
+    for(int i = 0; i < this->nodesDegree.size(); i++) {
+        if(this->nodesDegree[i] > degree) {
+            degree = this->nodesDegree[i];
+            index = i;
+        }
+    }
+
+    for(int i = 0; i < edges.size(); i++) {
+        if(edges[i].first == index || edges[i].second == index) {
+            this->forbiddenEdges.push_back(edges[i]);
+        }
+    }
 }
