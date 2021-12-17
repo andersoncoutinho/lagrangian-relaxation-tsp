@@ -2,7 +2,7 @@
 #include "Lagrange.h"
 #include "data.h"
 
-Lagrange::Lagrange(double **ptrMatrix, int dimension, double upperbound) {
+Lagrange::Lagrange(vvi *matrix, int dimension, double upperbound) {
 
     this->subgradients = vector<int>(dimension);
     this->u = vector<double>(dimension);
@@ -14,7 +14,13 @@ Lagrange::Lagrange(double **ptrMatrix, int dimension, double upperbound) {
     this->feasible = false;
     this->nodesDegree = vector<int>(dimension);
    
-    this->copyMatrix(ptrMatrix);
+    this->distanceMatrix = *matrix;
+    for(int i = 0; i < this->forbiddenEdges.size(); i++) {
+        this->distanceMatrix[forbiddenEdges[i].first][forbiddenEdges[i].second] = 
+        this->distanceMatrix[forbiddenEdges[i].second][forbiddenEdges[i].first] = INFINITE;
+    }
+
+    this->modifiedMatrix = this->distanceMatrix;
 }
 
 void Lagrange::solve() {

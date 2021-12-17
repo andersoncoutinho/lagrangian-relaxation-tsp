@@ -6,7 +6,7 @@
 
 class Lagrange {
     public:
-        Lagrange(double **ptrMatrix, int dimension, double upperbound);
+        Lagrange(vvi *matrix, int dimension, double upperbound);
         void solve();
         double getCost();
         double getUpperbound();
