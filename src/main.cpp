@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <list>
 #include "data.h"
 #include "Lagrange.h"
 
@@ -24,11 +25,13 @@ int main(int argc, char *argv[]) {
     int n = scanf("%lf", &upperbound);
     getchar();
 
-    Lagrange lagrange(&distanceMatrix, dimension, upperbound);
-    lagrange.solve();
-    
-    printf("Custo: %.2lf\n", lagrange.getCost());
-    printf("Upperbound: %.2lf\n", lagrange.getUpperbound());
+    Lagrange root(&distanceMatrix, dimension, upperbound, vector<double>(dimension));
+    root.solve();
 
+    std::list<Lagrange> tree;
+    tree.push_front(root);
+
+    
+    
     return 0;
 }
