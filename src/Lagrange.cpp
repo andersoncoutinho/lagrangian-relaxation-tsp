@@ -4,7 +4,9 @@
 
 double upperbound = 0;
 int dimension = 0;
-
+Lagrange::Lagrange() {
+    
+}
 Lagrange::Lagrange(const vvi &matrix, vector<double> u, ii forb) {
 
     this->subgradients = vector<int>(dimension);
@@ -26,6 +28,9 @@ void Lagrange::solve() {
         this->modifyMatrix();
         this->calculateSubgradients();
         
+        if(upperbound - this->L <= CORRECTION_FACTOR) {
+            break;
+        }
         if(this->L < this->cost) {
             this->L = this->cost;
             this->best_U = this->u;
@@ -33,7 +38,9 @@ void Lagrange::solve() {
 
         if(this->isFeasible()) {
             this->feasible = true;
-            upperbound = this->cost;
+            if(this->cost < upperbound) {
+                upperbound = this->cost;
+            }
             break;
         }
 
@@ -49,9 +56,6 @@ void Lagrange::solve() {
             }
         } else {
             iterations = 0;
-        }
-        if(upperbound - this->L <= CORRECTION_FACTOR) {
-            break;
         }
         
         this->calculateU();

@@ -9,6 +9,7 @@ extern int dimension;
 
 class Lagrange {
     public:
+        Lagrange();
         Lagrange(const vvi &matrix, vector<double> u, ii forb);
         void solve();
         double getCost();
