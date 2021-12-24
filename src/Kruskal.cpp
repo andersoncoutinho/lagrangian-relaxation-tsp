@@ -10,7 +10,7 @@ Kruskal::Kruskal(vvi dist){
 
 void Kruskal::initDisjoint(int n){
 	pset.resize(n);
-	for (int i = 1; i <= n; ++i){
+	for (int i = 1; i < n; ++i){
 		pset[i] = i;
 	}
 }

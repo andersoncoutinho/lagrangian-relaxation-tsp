@@ -5,8 +5,8 @@ BITS_OPTION = -m64
 CPPC = g++
 #############################
 
-#### opcoes de compilacao e includes
-CCOPT = $(BITS_OPTION) -O3 -fPIC -fexceptions -DNDEBUG -DIL_STD -std=c++0x
+### opcoes de compilacao e includes
+CCOPT = $(BITS_OPTION) -O3 -fPIC -fexceptions -DNDEBUG -DIL_STD -std=c++0x -msse2
 CONCERTINCDIR = $(CONCERTDIR)/include
 #############################
 
@@ -26,7 +26,7 @@ OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCS))
 #### regra principal, gera o executavel
 tsp: $(OBJS) 
 	@echo  "\033[31m \nLinking all objects files: \033[0m"
-	$(CPPC) $(BITS_OPTION) $(OBJS) -o $@ $(CCLNFLAGS)
+	$(CPPC) $(BITS_OPTION) $(OBJS) -o $@ $(CPPFLAGS) $(CCOPT) -g 
 ############################
 
 #inclui os arquivos de dependencias
@@ -36,9 +36,9 @@ tsp: $(OBJS)
 #cada arquivo objeto depende do .c e dos headers (informacao dos header esta no arquivo de dependencias gerado pelo compiler)
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@echo  "\033[31m \nCompiling $<: \033[0m"
-	$(CPPC) $(CCFLAGS) $(CCOPT) -c $< -o $@
+	$(CPPC) $(CPPFLAGS) $(CCOPT) -c $< -o $@ -g
 	@echo  "\033[32m \ncreating $< dependency file: \033[0m"
-	$(CPPC) -std=c++0x  -MM $< > $(basename $@).d
+	$(CPPC) -std=c++0x -MM $< > $(basename $@).d
 	@mv -f $(basename $@).d $(basename $@).d.tmp #proximas tres linhas colocam o diretorio no arquivo de dependencias (g++ nao coloca, surprisingly!)
 	@sed -e 's|.*:|$(basename $@).o:|' < $(basename $@).d.tmp > $(basename $@).d
 	@rm -f $(basename $@).d.tmp
