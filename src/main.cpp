@@ -61,17 +61,17 @@ int main(int argc, char *argv[]) {
                 vii forbidden = node->getForbiddenEdges();
                 for(int i = 0; i < forbidden.size(); i++) {
 
-                    Lagrange *newNode = new Lagrange(*node->getMatrix(), node->getU(), forbidden[i]);
-                    tree.push({newNode->getCost(), newNode});
+                Lagrange *newNode = new Lagrange(*node->getMatrix(), node->getU(), forbidden[i]);
+                tree.push({newNode->getCost(), newNode});
                 }
             } else if(node->getCost() < bestCost) {
-                    bestCost = node->getCost();
+                bestCost = node->getCost();
             }
 
             delete node;
         }
         
-    } else {
+    } else if (modo == BREADTH) {
         Lagrange root(distanceMatrix, vector<double>(dimension), ii());
         std::list<Lagrange> tree;
         tree.push_back(root);
@@ -92,7 +92,33 @@ int main(int argc, char *argv[]) {
             } else if(node.getCost() < bestCost) {
                 bestCost = node.getCost();
             }
+        }
 
+    } else if (modo == DEPTH) {
+
+        Lagrange root(distanceMatrix, vector<double>(dimension), ii());
+        std::list<Lagrange> tree;
+        tree.push_back(root);
+
+        while(!tree.empty()) {
+            Lagrange node = tree.front();
+            tree.pop_front();
+            if(!node.isSolved()) {
+                node.solve();
+            }
+            
+            
+            if(!node.cut() && node.getCost() < upperbound) {
+                ii forbidden = node.getForbiddenEdges().back();
+                node.popForbiddenEdge();
+                if(!node.getForbiddenEdges().empty()) {
+                    tree.push_front(node);
+                }
+                Lagrange newNode(*node.getMatrix(), node.getU(), forbidden);
+                tree.push_front(newNode);
+            } else if(node.getCost() < bestCost) {
+                bestCost = node.getCost();
+            }
         }
 
     }

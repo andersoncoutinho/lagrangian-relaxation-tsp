@@ -14,9 +14,11 @@ class Lagrange {
         void solve();
         double getCost();
         vii getForbiddenEdges();
+        void popForbiddenEdge();
         vector<double> getU();
         bool cut();
         vvi* getMatrix();
+        bool isSolved();
     private:
         vvi distanceMatrix;
         vvi modifiedMatrix;
@@ -34,6 +36,7 @@ class Lagrange {
         void calculateU();
         void generateForbiddenEdges();
         vii edges;
+        bool solved;
 
         vector<double> best_U;
 

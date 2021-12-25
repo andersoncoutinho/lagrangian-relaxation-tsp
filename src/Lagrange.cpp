@@ -8,7 +8,7 @@ Lagrange::Lagrange() {
     
 }
 Lagrange::Lagrange(const vvi &matrix, vector<double> u, ii forb) {
-
+    this->solved = false;
     this->subgradients = vector<int>(dimension);
     this->u = u;
     this->iterations = 0;
@@ -41,7 +41,7 @@ void Lagrange::solve() {
             if(this->cost < upperbound) {
                 upperbound = this->cost;
             }
-            break;
+            return;
         }
 
         if(this->cost <= this->L) {
@@ -65,6 +65,7 @@ void Lagrange::solve() {
     this->modifyMatrix();
     this->calculateSubgradients();
     this->generateForbiddenEdges();
+    this->solved = true;
         
 }
 
@@ -173,4 +174,12 @@ vector<double> Lagrange::getU() {
 
 vvi* Lagrange::getMatrix() {
     return &this->distanceMatrix;
+}
+
+void Lagrange::popForbiddenEdge() {
+    this->forbiddenEdges.pop_back();
+}
+
+bool Lagrange::isSolved() {
+    return this->solved;
 }
